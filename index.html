@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行测错题智能整理</title>
+<style>
+  :root{
+    --paper:#f3e2df;
+    --paper-line:#d9b9b3;
+    --ink:#241f1c;
+    --ink-soft:#5c4f49;
+    --stamp:#a6362a;
+    --stamp-dark:#7e281f;
+    --card-bg:#fbf2ef;
+    --warn:#a6362a;
+    --grid:#e3c6c0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, var(--grid) 27px, var(--grid) 28px),
+      repeating-linear-gradient(90deg, transparent, transparent 27px, var(--grid) 27px, var(--grid) 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family: "Songti SC", "STSong", "SimSun", serif;
+    min-height:100vh;
+    padding:32px 16px 80px;
+  }
+  .wrap{max-width:860px;margin:0 auto;}
+
+  header{
+    border-bottom:3px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:28px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+  }
+  header .title{
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:2px;
+  }
+  header .title small{
+    display:block;
+    font-family: "Courier New", monospace;
+    font-size:12px;
+    letter-spacing:3px;
+    color:var(--ink-soft);
+    font-weight:400;
+    margin-top:6px;
+  }
+  .stamp-badge{
+    border:2px solid var(--stamp);
+    color:var(--stamp);
+    font-family:"Courier New", monospace;
+    font-size:12px;
+    letter-spacing:2px;
+    padding:6px 10px;
+    transform:rotate(-4deg);
+    border-radius:2px;
+    white-space:nowrap;
+  }
+
+  .panel{
+    background:var(--card-bg);
+    border:1px solid var(--ink);
+    padding:20px;
+    margin-bottom:24px;
+    position:relative;
+  }
+  .panel::before{
+    content:attr(data-no);
+    position:absolute;
+    top:-11px;
+    left:16px;
+    background:var(--paper);
+    padding:0 8px;
+    font-family:"Courier New", monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:2px;
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+    letter-spacing:1px;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:14px;
+  }
+  input[type=text], input[type=password], textarea{
+    width:100%;
+    font-family:"Courier New", monospace;
+    font-size:14px;
+    padding:10px 12px;
+    border:1px solid var(--ink);
+    background:#fff;
+    color:var(--ink);
+  }
+  input:focus, textarea:focus, button:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+  }
+  textarea{
+    font-family: "Songti SC","STSong","SimSun",serif;
+    min-height:240px;
+    resize:vertical;
+    line-height:1.7;
+  }
+  .field{margin-bottom:14px;}
+  .hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+  .inline-label{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .inline-label input{width:auto;}
+
+  .btn{
+    display:inline-block;
+    background:var(--stamp);
+    color:#fff;
+    border:none;
+    padding:12px 28px;
+    font-size:15px;
+    letter-spacing:3px;
+    font-family:"Songti SC","STSong",serif;
+    font-weight:700;
+    cursor:pointer;
+    border-radius:2px;
+  }
+  .btn:hover{background:var(--stamp-dark);}
+  .btn:disabled{background:#b79b96;cursor:not-allowed;}
+  .btn.secondary{
+    background:transparent;
+    color:var(--stamp);
+    border:1.5px solid var(--stamp);
+    padding:8px 16px;
+    font-size:13px;
+    letter-spacing:2px;
+  }
+  .btn.secondary:hover{background:var(--stamp);color:#fff;}
+  .btn.mini{
+    background:transparent;
+    color:var(--stamp);
+    border:1px solid var(--stamp);
+    padding:3px 10px;
+    font-size:12px;
+    letter-spacing:1px;
+    font-family:"Courier New", monospace;
+  }
+  .btn.mini:hover{background:var(--stamp);color:#fff;}
+
+  .status{
+    font-family:"Courier New", monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:12px;
+    min-height:18px;
+    white-space:pre-wrap;
+  }
+  .status.error{color:var(--warn);font-weight:700;}
+  .detail{
+    font-family:"Courier New", monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    min-height:16px;
+    white-space:pre-wrap;
+  }
+
+  .results-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .results-head h2{
+    font-size:16px;
+    letter-spacing:2px;
+    margin:0;
+  }
+  .results-head .actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .cat-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    border-top:1px dashed var(--ink-soft);
+    padding-top:12px;
+    margin:22px 0 12px;
+  }
+  .cat-head .name{
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:1px;
+  }
+  .cat-head .name .count{
+    font-family:"Courier New", monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    font-weight:400;
+  }
+  .cat-head .actions{display:flex;gap:8px;}
+
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--ink-soft);
+    border-left:6px solid var(--stamp);
+    padding:14px 16px;
+    margin-bottom:12px;
+    position:relative;
+  }
+  .card .tag{
+    display:inline-block;
+    font-family:"Courier New", monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--stamp);
+    border:1px solid var(--stamp);
+    padding:1px 6px;
+    margin-bottom:8px;
+  }
+  .card .card-title{
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:8px;
+    letter-spacing:1px;
+  }
+  .card .content{
+    font-size:14px;
+    line-height:1.9;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .card .content h1,.card .content h2,.card .content h3,.card .content h4{
+    margin:8px 0 4px;
+    font-size:15px;
+  }
+  .card .content blockquote{
+    margin:4px 0;
+    padding:2px 10px;
+    border-left:3px solid var(--stamp);
+    color:var(--warn);
+    background:#f7e9e5;
+  }
+  .card .content code{
+    background:#f0e3df;
+    padding:0 4px;
+    font-family:"Courier New", monospace;
+    font-size:12px;
+  }
+  .card .content li.ul{
+    list-style:none;
+    position:relative;
+    padding-left:14px;
+  }
+  .card .content li.ul::before{
+    content:"·";
+    position:absolute;
+    left:0;
+    color:var(--stamp);
+  }
+  .card .copy-one{
+    position:absolute;
+    top:12px;
+    right:12px;
+    font-family:"Courier New", monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    background:none;
+    border:1px solid var(--ink-soft);
+    padding:2px 8px;
+    cursor:pointer;
+  }
+  .card .copy-one:hover{border-color:var(--stamp);color:var(--stamp);}
+
+  footer{
+    text-align:center;
+    font-family:"Courier New", monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:1px;
+    margin-top:40px;
+  }
+
+  @media (max-width:600px){
+    .row{grid-template-columns:1fr;}
+    header{flex-direction:column;align-items:flex-start;gap:10px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="title">行测错题智能整理
+      <small>常识/政治 · 言语 · 逻辑填空 · 数量 · 判断推理 · 资料分析</small>
+    </div>
+    <div class="stamp-badge">自动分类<br>逐题整理</div>
+  </header>
+
+  <div class="panel" data-no="01 · 接口设置">
+    <div class="row">
+      <div class="field">
+        <label for="baseUrl">API Base URL（OpenAI 兼容）</label>
+        <input type="text" id="baseUrl" placeholder="https://api.xxx.com/v1" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="model">模型名称</label>
+        <input type="text" id="model" placeholder="如 gpt-4o-mini / deepseek-chat" autocomplete="off">
+      </div>
+    </div>
+    <div class="field">
+      <label for="apiKey">API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off">
+      <label class="inline-label"><input type="checkbox" id="rememberKey"> 在本机浏览器记住 Base URL / 模型名 / Key</label>
+      <div class="hint">所有请求经本站 Cloudflare Pages 代理转发，Key 只用于拼接请求头，不落盘。</div>
+    </div>
+  </div>
+
+  <div class="panel" data-no="02 · 粘贴错题合集">
+    <div class="field">
+      <label for="rawInput">从粉笔复制的错题合集，整段粘贴，可以是好几道题连在一起</label>
+      <textarea id="rawInput" placeholder="把一次做完的错题原始内容整段粘贴到这里……"></textarea>
+      <div class="hint">工具会先自动识别题目数量、按 6 大类型分类，再逐道按对应模板整理。常识/政治类只做题目解析与知识点积累，不做错因分析。</div>
+    </div>
+    <button class="btn" id="generateBtn">开始整理</button>
+    <div class="status" id="status"></div>
+    <div class="detail" id="detail"></div>
+  </div>
+
+  <div class="panel" id="resultsPanel" data-no="03 · 整理结果" style="display:none;">
+    <div class="results-head">
+      <h2>整理结果</h2>
+      <div class="actions">
+        <button class="btn secondary" id="copyAllBtn">复制全部</button>
+        <button class="btn secondary" id="downloadAllBtn">下载全部 .md</button>
+      </div>
+    </div>
+    <div id="cardsContainer"></div>
+  </div>
+
+  <footer>本页为纯静态页面 · 经由 Cloudflare Pages 代理转发到你填写的 API 地址 · 关闭或刷新页面后不保存 Key（除非勾选记住）</footer>
+</div>
+
+<script>
+const CATEGORIES = ['常识判断/政治理论', '言语理解', '逻辑填空', '数量关系', '判断推理', '资料分析'];
+const catOrder = CATEGORIES.concat('通用');
+const LS_KEY = 'xt_config_v1';
+
+const CLASSIFY_SYSTEM = `你是公务员考试"行测"科目的题目分类助手。
+
+用户会整段粘贴一次做完的多道错题，通常包含：题干、选项、我的答案、正确答案。题与题之间没有固定分隔符，你需要自己识别每一道独立的题（一段"题干+选项"为一道题；一道含多个空格的逻辑填空也算一道）。
+
+对每道题分类，只能选以下类别之一：
+- 常识判断/政治理论
+- 言语理解
+- 逻辑填空
+- 数量关系
+- 判断推理
+- 资料分析
+若某道题明显无法归入以上任何一类，category 填"通用"。
+
+输出：只输出一个 JSON 数组，不要任何其他文字或代码块标记。
+数组每一项：{"q":["题干第一行","选项A ...","选项B ...","我的答案：","正确答案："] ,"category":"类别","subtype":"更细题型，如 片段阅读-主旨 / 图形推理 / 工程问题 / 增长率；常识类与逻辑填空可填'-'","title":"≤12字的关键词或考点，用于卡片标题"}
+要求：
+- q 是这道题的完整原文（题干+选项，尽量保留"我的答案/正确答案"），按行拆分到数组，每个元素是一行文本，元素内禁止换行。
+- 必须逐题识别、不遗漏、不合并，保持输入顺序。
+- title 用关键词概括考点，不要用整句。`;
+
+const JSON_OUT_RULES = `
+输出格式：只输出一个 JSON 数组，不要任何其他文字或代码块标记。数组每一项是下面的字段对象。
+严格要求：
+- 所有字符串字段内部禁止出现换行符（一个字段值内不能有换行）。
+- 必须给出全部字段；没有的信息填空字符串 ""，列表字段填空数组 []。
+- 若原文含有英文双引号，需转义为 \\\"（保证是合法 JSON）。
+- idx 与输入中的题号一一对应。`;
+
+function schemaPrompt(name, intro, fields) {
+  return `你是公务员考试"行测"科目的错题整理助手，专门整理"${name}"类错题。
+
+${intro}
+
+对每道题，把题目内容填到下面的结构化字段里（字段含义见注释）：
+
+${fields}
+` + JSON_OUT_RULES;
+}
+
+const GEN_SCHEMAS = {
+  '常识判断/政治理论': schemaPrompt('常识判断/政治理论',
+    `用户会提供若干道常识判断/政治理论错题，每道以 "## 错题N" 开头。
+
+只做两件事：
+1. 解析这道题：说明正确选项为什么正确（讲透考点，1-3 句）。
+2. 整理需要积累的知识点：逐条列出，每条 10-30 字，具体可背诵。
+
+严格要求：
+- 禁止做错因分析：不要提"用户选错了什么"、不要分析为什么做错、不要复述"我的答案"。
+- tag 按题目内容判断填"常识判断"或"政治理论"。
+- 属于政治理论/时政类且涉及可能变化的官方提法、政策表述、领导人讲话原话时，needsVerify 填 true，否则 false。
+- 知识点只提炼题目涉及的，未涉及的不要编造。`,
+    `{"idx":N,"tag":"常识判断 或 政治理论","title":"≤12字考点标题","parse":"正确选项为什么对，1-3 句","points":["知识点1","知识点2",...],"needsVerify":true或false}`),
+
+  '言语理解': schemaPrompt('言语理解',
+    `用户会提供若干道言语理解错题（片段阅读：主旨/意图/细节判断/语句衔接/语句排序/标题选择等），每道以 "## 错题N" 开头。`,
+    `{"idx":N,"title":"≤12字关键词","type":"如 片段阅读-主旨/片段阅读-意图/细节判断/语句衔接/语句排序/标题选择","original":"题干+选项原文，完整保留","myAnswer":"用户所选","correctAnswer":"正确选项","reason":"错误原因一句话，如 主旨概括跑偏/过度引申/忽略转折词/首尾句判断错误/选项辨析不细/细节偷换","structure":"如 总分/分总/转折/并列/因果","analysis":"正确思路，说明正确选项依据与易混项为何排除","skills":["技巧1","技巧2",...]}`),
+
+  '逻辑填空': schemaPrompt('逻辑填空',
+    `用户会提供若干道逻辑填空错题，每道以 "## 错题N" 开头。`,
+    `{"idx":N,"title":"≤12字关键词","original":"题干+选项原文，完整保留","myAnswer":"用户所选","correctAnswer":"正确选项","spaceAnalysis":["空格1的呼应词/语境依据","空格2...",...],"reason":"错误原因，如 词义辨析不清/感情色彩误判/语境理解偏差/搭配习惯不熟/粗心","analysis":"正确思路，正确选项理由+易混项排除理由","words":["易混词/高频词辨析1",...],"skills":["秒题技巧1",...]}`),
+
+  '数量关系': schemaPrompt('数量关系',
+    `用户会提供若干道数量关系错题，每道以 "## 错题N" 开头。`,
+    `{"idx":N,"title":"≤12字关键词","type":"如 工程问题/行程问题/排列组合/利润问题/几何问题/浓度问题","original":"题干+选项原文，完整保留","myAnswer":"用户所选","correctAnswer":"正确选项","reason":"错误原因，如 公式记错/方法选错/计算失误/没识别出题型/超时放弃","solution":"正确解法，步骤清晰带算式","skills":["公式/代入法/特值法/估值法等技巧1",...]}`),
+
+  '判断推理': schemaPrompt('判断推理',
+    `用户会提供若干道判断推理错题（图形推理/定义判断/类比推理/逻辑判断等），每道以 "## 错题N" 开头。`,
+    `{"idx":N,"title":"≤12字关键词","type":"如 图形推理/定义判断/类比推理/逻辑判断","original":"题干+选项原文，完整保留","myAnswer":"用户所选","correctAnswer":"正确选项","reason":"错误原因，如 规律未发现/定义要件遗漏/类比关系找错/逻辑链条断裂/时间不够蒙的","analysis":"正确思路，分条讲清推理过程与排除理由","skills":["可复用规律/秒题要点1",...]}`),
+
+  '资料分析': schemaPrompt('资料分析',
+    `用户会提供若干道资料分析错题，每道以 "## 错题N" 开头。`,
+    `{"idx":N,"title":"≤12字关键词","type":"如 增长率/比重/平均数/倍数/综合分析","original":"题干+选项原文，完整保留","myAnswer":"用户所选","correctAnswer":"正确选项","reason":"错误原因，如 材料定位错误/公式用错/估算误差过大/单位或时间看错/计算失误","solution":"正确解法/列式，含计算过程","skills":["截位直除/特征数字/百化分等速算技巧1",...]}`),
+
+  '通用': schemaPrompt('通用',
+    `用户会提供若干道错题，每道以 "## 错题N" 开头。`,
+    `{"idx":N,"title":"≤12字关键词","type":"（留空即可）","original":"题干+选项原文，完整保留","myAnswer":"用户所选","correctAnswer":"正确选项","reason":"错误原因一句话","analysis":"正确思路","skills":["可复用技巧/概念1",...]}`),
+};
+
+function bullets(arr) {
+  return (arr || []).map((b) => '- ' + b);
+}
+
+function numbered(arr) {
+  return (arr || []).map((p, i) => (i + 1) + '. ' + p);
+}
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function renderCommonCard(idx, d) {
+  const tag = d.tag === '政治理论' ? '政治理论' : '常识判断';
+  const L = [];
+  L.push('【' + tag + '】' + (d.title || ''));
+  L.push('**题目解析**：' + (d.parse || ''));
+  L.push('**知识点积累**：');
+  L.push.apply(L, numbered(d.points));
+  if (d.needsVerify) L.push('⚠️ 建议对照最新时政资料核实');
+  return L.join('\n');
+}
+
+function renderStdCard(idx, d, spec) {
+  const L = [];
+  L.push('#### 错题' + pad2(idx) + '｜' + (d.title || ''));
+  L.push('- [ ] 待复习');
+  L.push('');
+  L.push('**来源**：');
+  for (const f of spec.fields) {
+    if (f.key === 'answerLine') {
+      L.push('**我的答案**：' + (d.myAnswer || '') + '　**正确答案**：' + (d.correctAnswer || ''));
+    } else if (f.list) {
+      L.push('**' + f.label + '**：');
+      L.push.apply(L, bullets(d[f.key]));
+    } else {
+      L.push('**' + f.label + '**：' + (d[f.key] || ''));
+    }
+    L.push('');
+  }
+  return L.join('\n').replace(/\n+$/, '');
+}
+
+const RENDERERS = {
+  '言语理解': { fields: [
+    { key: 'type', label: '题型' },
+    { key: 'original', label: '原题' },
+    { key: 'answerLine', label: '（答案行）' },
+    { key: 'reason', label: '错误原因' },
+    { key: 'structure', label: '文段结构分析' },
+    { key: 'analysis', label: '正确思路' },
+    { key: 'skills', label: '可复用技巧/秒题方法', list: true },
+  ] },
+  '逻辑填空': { fields: [
+    { key: 'original', label: '原题' },
+    { key: 'answerLine', label: '（答案行）' },
+    { key: 'spaceAnalysis', label: '关键词/空格解析', list: true },
+    { key: 'reason', label: '错误原因' },
+    { key: 'analysis', label: '正确思路' },
+    { key: 'words', label: '易混词积累', list: true },
+    { key: 'skills', label: '秒题技巧', list: true },
+  ] },
+  '数量关系': { fields: [
+    { key: 'type', label: '题型' },
+    { key: 'original', label: '原题' },
+    { key: 'answerLine', label: '（答案行）' },
+    { key: 'reason', label: '错误原因' },
+    { key: 'solution', label: '正确解法' },
+    { key: 'skills', label: '可套用公式/秒杀技巧', list: true },
+  ] },
+  '判断推理': { fields: [
+    { key: 'type', label: '题型' },
+    { key: 'original', label: '原题' },
+    { key: 'answerLine', label: '（答案行）' },
+    { key: 'reason', label: '错误原因' },
+    { key: 'analysis', label: '正确思路' },
+    { key: 'skills', label: '可复用技巧/规律', list: true },
+  ] },
+  '资料分析': { fields: [
+    { key: 'type', label: '题型' },
+    { key: 'original', label: '原题' },
+    { key: 'answerLine', label: '（答案行）' },
+    { key: 'reason', label: '错误原因' },
+    { key: 'solution', label: '正确解法/列式' },
+    { key: 'skills', label: '速算技巧', list: true },
+  ] },
+  '通用': { fields: [
+    { key: 'type', label: '题型' },
+    { key: 'original', label: '原题' },
+    { key: 'answerLine', label: '（答案行）' },
+    { key: 'reason', label: '错误原因' },
+    { key: 'analysis', label: '正确思路' },
+    { key: 'skills', label: '可复用技巧/概念', list: true },
+  ] },
+};
+
+function renderByCategory(cat, idx, d) {
+  if (cat === '常识判断/政治理论') return renderCommonCard(idx, d);
+  return renderStdCard(idx, d, RENDERERS[cat] || RENDERERS['通用']);
+}
+
+const $ = (id) => document.getElementById(id);
+const baseUrlEl = $('baseUrl');
+const modelEl = $('model');
+const apiKeyEl = $('apiKey');
+const rememberEl = $('rememberKey');
+const rawEl = $('rawInput');
+const statusEl = $('status');
+const detailEl = $('detail');
+const generateBtn = $('generateBtn');
+const resultsPanel = $('resultsPanel');
+const cardsContainer = $('cardsContainer');
+const copyAllBtn = $('copyAllBtn');
+const downloadAllBtn = $('downloadAllBtn');
+
+let lastItems = [];
+
+function setStatus(text, isError) {
+  statusEl.textContent = text;
+  statusEl.className = 'status' + (isError ? ' error' : '');
+}
+function setDetail(text) {
+  detailEl.textContent = text;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function mdToHtml(md) {
+  let h = escapeHtml(md);
+  h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  h = h.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+  h = h.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+  h = h.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+  h = h.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+  h = h.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  h = h.replace(/^- (.+)$/gm, '<li class="ul">$1</li>');
+  h = h.replace(/^(\d+)\. (.+)$/gm, '<li class="ol">$1. $2</li>');
+  h = h.replace(/^&gt; ?(.+)$/gm, '<blockquote>$1</blockquote>');
+  return h;
+}
+
+function normLines(v) {
+  if (Array.isArray(v)) return v.join('\n');
+  return String(v == null ? '' : v);
+}
+
+function extractJSON(text) {
+  let t = String(text).trim();
+  t = t.replace(/^```[a-zA-Z0-9]*\s*/, '').replace(/\s*```$/, '');
+  const s = t.indexOf('[');
+  const e = t.lastIndexOf(']');
+  if (s >= 0 && e > s) t = t.slice(s, e + 1);
+  const parsed = JSON.parse(t);
+  if (!Array.isArray(parsed)) throw new Error('AI 返回的不是数组');
+  return parsed;
+}
+
+function splitChunks(text, maxChars) {
+  const limit = maxChars || 6000;
+  const blocks = text.split(/\n\s*\n+/).map((s) => s.trim()).filter(Boolean);
+  const chunks = [];
+  let cur = '';
+  for (const b of blocks) {
+    if (!cur) { cur = b; continue; }
+    if (cur.length + b.length + 2 > limit) {
+      chunks.push(cur);
+      cur = b;
+    } else {
+      cur += '\n\n' + b;
+    }
+  }
+  if (cur) chunks.push(cur);
+  return chunks;
+}
+
+async function callChat(cfg, messages, temperature) {
+  const resp = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      baseUrl: cfg.baseUrl,
+      model: cfg.model,
+      apiKey: cfg.apiKey,
+      messages,
+      temperature,
+    }),
+  });
+  if (!resp.ok) {
+    let msg = 'HTTP ' + resp.status;
+    try {
+      const j = await resp.json();
+      if (j && j.error) msg = j.error.message || j.error;
+    } catch (e) { /* ignore */ }
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  if (!content) throw new Error('接口未返回内容');
+  return content;
+}
+
+async function withRetry(fn, tries) {
+  const n = tries || 2;
+  let lastErr;
+  for (let i = 0; i < n; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr;
+}
+
+async function pool(items, limit, fn) {
+  const results = new Array(items.length);
+  let i = 0;
+  let firstErr = null;
+  async function worker() {
+    while (i < items.length) {
+      const j = i++;
+      try {
+        results[j] = await fn(items[j], j);
+      } catch (e) {
+        results[j] = null;
+        if (!firstErr) firstErr = e;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  if (firstErr) throw firstErr;
+  return results;
+}
+
+async function classifyChunk(chunk, cfg) {
+  const content = await callChat(cfg, [
+    { role: 'system', content: CLASSIFY_SYSTEM },
+    { role: 'user', content: chunk },
+  ], 0);
+  const arr = extractJSON(content);
+  return arr.map((it) => ({
+    q: normLines(it.q),
+    category: String(it.category || '').trim(),
+    subtype: String(it.subtype || '').trim(),
+    title: String(it.title || '').trim(),
+  }));
+}
+
+async function generateCategory(cat, items, cfg) {
+  const sys = GEN_SCHEMAS[cat] || GEN_SCHEMAS['通用'];
+  const user = items.map((it) => '## 错题' + String(it.localIdx).padStart(2, '0') + '\n' + it.q).join('\n\n');
+  const content = await callChat(cfg, [
+    { role: 'system', content: sys },
+    { role: 'user', content: user },
+  ], 0.3);
+  const arr = extractJSON(content);
+  return arr.map((it) => {
+    const d = normalizeFields(it);
+    return { idx: Number(it.idx), title: d.title, content: renderByCategory(cat, Number(it.idx), d) };
+  });
+}
+
+function normalizeFields(it) {
+  const out = {};
+  for (const k of Object.keys(it)) out[k] = it[k];
+  out.title = String(out.title || '');
+  if (!Array.isArray(out.points)) out.points = [];
+  if (!Array.isArray(out.skills)) out.skills = [];
+  if (!Array.isArray(out.spaceAnalysis)) out.spaceAnalysis = [];
+  if (!Array.isArray(out.words)) out.words = [];
+  out.needsVerify = out.needsVerify === true || out.needsVerify === 'true';
+  return out;
+}
+
+function groupByCatOrder(items) {
+  const byCat = {};
+  for (const it of items) (byCat[it.category] = byCat[it.category] || []).push(it);
+  for (const k of Object.keys(byCat)) byCat[k].sort((a, b) => a.gidx - b.gidx);
+  return byCat;
+}
+
+function cardTag(it) {
+  if (it.category === '常识判断/政治理论') {
+    const m = it.content.match(/^【(.+?)】/);
+    return m ? m[1] : '常识判断/政治理论';
+  }
+  return it.category;
+}
+
+function buildCard(it) {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const tagEl = document.createElement('span');
+  tagEl.className = 'tag';
+  tagEl.textContent = cardTag(it);
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'card-title';
+  titleEl.textContent = it.title || '';
+
+  const contentEl = document.createElement('div');
+  contentEl.className = 'content';
+  contentEl.innerHTML = mdToHtml(it.content);
+
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'copy-one';
+  copyBtn.textContent = '复制';
+  copyBtn.onclick = async () => {
+    await copyText(it.content);
+    flashBtn(copyBtn, '已复制');
+  };
+
+  card.appendChild(copyBtn);
+  card.appendChild(tagEl);
+  card.appendChild(titleEl);
+  card.appendChild(contentEl);
+  return card;
+}
+
+function renderCards(items) {
+  lastItems = items;
+  cardsContainer.innerHTML = '';
+  const byCat = groupByCatOrder(items);
+
+  for (const cat of catOrder) {
+    const list = byCat[cat];
+    if (!list || !list.length) continue;
+
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = cat;
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = '（' + list.length + ' 道）';
+    name.appendChild(count);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    const copyCatBtn = document.createElement('button');
+    copyCatBtn.className = 'btn mini';
+    copyCatBtn.textContent = '复制本类';
+    copyCatBtn.onclick = async () => {
+      const text = list.map((it) => it.content).join('\n\n---\n\n');
+      await copyText(text);
+      flashBtn(copyCatBtn, '已复制');
+    };
+
+    const dlCatBtn = document.createElement('button');
+    dlCatBtn.className = 'btn mini';
+    dlCatBtn.textContent = '下载本类 .md';
+    dlCatBtn.onclick = () => {
+      downloadMarkdown(list, cat);
+      flashBtn(dlCatBtn, '已下载');
+    };
+
+    actions.appendChild(copyCatBtn);
+    actions.appendChild(dlCatBtn);
+    head.appendChild(name);
+    head.appendChild(actions);
+    cardsContainer.appendChild(head);
+
+    for (const it of list) cardsContainer.appendChild(buildCard(it));
+  }
+
+  resultsPanel.style.display = 'block';
+}
+
+function buildAllMarkdown(items) {
+  const byCat = groupByCatOrder(items);
+  const parts = ['# 行测错题整理结果', ''];
+  for (const cat of catOrder) {
+    const list = byCat[cat];
+    if (!list || !list.length) continue;
+    parts.push('## 【' + cat + '】(' + list.length + ' 道)', '');
+    list.forEach((it, i) => {
+      parts.push(it.content);
+      if (i < list.length - 1) parts.push('', '---', '');
+    });
+    parts.push('');
+  }
+  return parts.join('\n');
+}
+
+function downloadMarkdown(items, cat) {
+  const ts = timestamp();
+  const blocks = items.map((it) => it.content).join('\n\n---\n\n');
+  const note = cat ? ('<!-- 新增于 ' + ts + '，共 ' + items.length + ' 道，可粘贴到「' + cat + '」错题本.md -->\n\n') : '';
+  const text = note + blocks;
+  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (cat ? cat.replace('/', '_') + '_错题_新增_' : '行测错题整理_') + ts.replace(/[-:]/g, '').replace(' ', '_') + '.md';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function timestamp() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
+    document.body.removeChild(ta);
+  }
+}
+
+function flashBtn(btn, text) {
+  const original = btn.textContent;
+  btn.textContent = text;
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = original;
+    btn.disabled = false;
+  }, 1200);
+}
+
+async function run() {
+  const cfg = {
+    baseUrl: baseUrlEl.value.trim().replace(/\/+$/, ''),
+    model: modelEl.value.trim(),
+    apiKey: apiKeyEl.value.trim(),
+  };
+  const raw = rawEl.value.trim();
+
+  if (!cfg.baseUrl || !cfg.model) {
+    setStatus('请先填写 Base URL 与模型名称', true);
+    return;
+  }
+  if (!raw) {
+    setStatus('请先粘贴错题内容', true);
+    return;
+  }
+
+  saveConfig();
+  generateBtn.disabled = true;
+  copyAllBtn.disabled = true;
+  downloadAllBtn.disabled = true;
+  resultsPanel.style.display = 'none';
+  cardsContainer.innerHTML = '';
+
+  try {
+    setDetail('');
+    setStatus('正在切分题目文本…');
+    const chunks = splitChunks(raw);
+    setStatus('正在调用 AI 分类（共 ' + chunks.length + ' 批，并行 2 批）…');
+
+    const chunkResults = await pool(chunks, 2, (chunk) => withRetry(() => classifyChunk(chunk, cfg), 2));
+
+    const questions = [];
+    let gidx = 0;
+    for (const r of chunkResults) {
+      for (const it of r) questions.push(Object.assign({}, it, { gidx: ++gidx }));
+    }
+    if (!questions.length) throw new Error('AI 没有识别出任何题目，请检查粘贴格式');
+
+    const groups = {};
+    for (const q of questions) {
+      const c = CATEGORIES.indexOf(q.category) >= 0 ? q.category : '通用';
+      (groups[c] = groups[c] || []).push(q);
+    }
+    const cats = Object.keys(groups);
+    setStatus('已识别 ' + questions.length + ' 道题，分为 ' + cats.length + ' 类，正在逐类生成…');
+
+    const generated = [];
+    const errors = [];
+    const detailLog = [];
+    await pool(cats, 2, async (cat) => {
+      const items = groups[cat].map((q, i) => Object.assign({}, q, { localIdx: i + 1 }));
+      try {
+        const arr = await withRetry(() => generateCategory(cat, items, cfg), 2);
+        const byLocal = new Map(items.map((it) => [it.localIdx, it]));
+        for (const it of arr) {
+          const q = byLocal.get(it.idx);
+          if (q) generated.push({ category: cat, gidx: q.gidx, title: it.title || q.title, content: it.content });
+        }
+        detailLog.push('- ' + cat + '：' + items.length + ' 道完成');
+      } catch (e) {
+        errors.push(cat + '：' + e.message);
+        detailLog.push('- ' + cat + '：生成失败（' + e.message + '）');
+      }
+      setDetail(detailLog.join('\n'));
+    });
+
+    generated.sort((a, b) => a.gidx - b.gidx);
+    if (!generated.length) throw new Error(errors.join('；'));
+
+    renderCards(generated);
+    if (errors.length) {
+      setStatus('部分完成：' + generated.length + ' 道成功，失败 ' + errors.length + ' 类：' + errors.join('；'), true);
+    } else {
+      setStatus('完成，共整理 ' + generated.length + ' 道题');
+    }
+  } catch (e) {
+    setStatus('出错了：' + e.message, true);
+  } finally {
+    generateBtn.disabled = false;
+    copyAllBtn.disabled = false;
+    downloadAllBtn.disabled = false;
+  }
+}
+
+function saveConfig() {
+  const cfg = {
+    baseUrl: baseUrlEl.value.trim(),
+    model: modelEl.value.trim(),
+    rememberKey: rememberEl.checked,
+  };
+  if (rememberEl.checked) cfg.apiKey = apiKeyEl.value.trim();
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(cfg));
+  } catch (e) { /* ignore */ }
+}
+
+function loadConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    if (c.baseUrl) baseUrlEl.value = c.baseUrl;
+    if (c.model) modelEl.value = c.model;
+    if (c.rememberKey && c.apiKey) {
+      apiKeyEl.value = c.apiKey;
+      rememberEl.checked = true;
+    }
+  } catch (e) { /* ignore */ }
+}
+
+generateBtn.addEventListener('click', run);
+
+copyAllBtn.addEventListener('click', async () => {
+  if (!lastItems.length) return;
+  await copyText(buildAllMarkdown(lastItems));
+  flashBtn(copyAllBtn, '已复制');
+});
+
+downloadAllBtn.addEventListener('click', () => {
+  if (!lastItems.length) return;
+  downloadMarkdown(lastItems, null);
+  flashBtn(downloadAllBtn, '已下载');
+});
+
+baseUrlEl.addEventListener('change', saveConfig);
+modelEl.addEventListener('change', saveConfig);
+apiKeyEl.addEventListener('change', () => { if (rememberEl.checked) saveConfig(); });
+rememberEl.addEventListener('change', saveConfig);
+
+loadConfig();
+</script>
+</body>
+</html>
