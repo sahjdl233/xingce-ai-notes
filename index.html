@@ -97,6 +97,12 @@
     gap:14px;
     margin-bottom:14px;
   }
+  .model-row{
+    display:flex;
+    gap:8px;
+    align-items:stretch;
+  }
+  .model-row input{flex:1;}
   input[type=text], input[type=password], textarea{
     width:100%;
     font-family:"Courier New", monospace;
@@ -329,7 +335,12 @@
       </div>
       <div class="field">
         <label for="model">模型名称</label>
-        <input type="text" id="model" placeholder="如 gpt-4o-mini / deepseek-chat" autocomplete="off">
+        <div class="model-row">
+          <input type="text" id="model" list="modelList" placeholder="如 gpt-4o-mini / deepseek-chat" autocomplete="off">
+          <button class="btn mini" id="fetchModelsBtn" type="button">获取模型</button>
+        </div>
+        <datalist id="modelList"></datalist>
+        <div class="hint">点「获取模型」从接口拉取可用模型列表（需先填好 Base URL 与 Key）。</div>
       </div>
     </div>
     <div class="field">
@@ -555,6 +566,8 @@ const baseUrlEl = $('baseUrl');
 const modelEl = $('model');
 const apiKeyEl = $('apiKey');
 const rememberEl = $('rememberKey');
+const fetchModelsBtn = $('fetchModelsBtn');
+const modelListEl = $('modelList');
 const rawEl = $('rawInput');
 const statusEl = $('status');
 const detailEl = $('detail');
@@ -887,6 +900,49 @@ function flashBtn(btn, text) {
   }, 1200);
 }
 
+async function loadModels() {
+  const baseUrl = baseUrlEl.value.trim().replace(/\/+$/, '');
+  const apiKey = apiKeyEl.value.trim();
+  if (!baseUrl) {
+    setStatus('请先填写 Base URL', true);
+    return;
+  }
+  const original = fetchModelsBtn.textContent;
+  fetchModelsBtn.disabled = true;
+  fetchModelsBtn.textContent = '获取中…';
+  try {
+    const resp = await fetch('/api/models', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ baseUrl, apiKey }),
+    });
+    if (!resp.ok) {
+      let msg = 'HTTP ' + resp.status;
+      try {
+        const j = await resp.json();
+        if (j && j.error) msg = j.error.message || j.error;
+      } catch (e) { /* ignore */ }
+      throw new Error(msg);
+    }
+    const data = await resp.json();
+    const models = (data && data.data) || [];
+    const ids = models.map((m) => m && m.id).filter(Boolean);
+    if (!ids.length) throw new Error('接口未返回模型列表（缺少 data[].id）');
+    modelListEl.innerHTML = '';
+    for (const id of ids) {
+      const opt = document.createElement('option');
+      opt.value = id;
+      modelListEl.appendChild(opt);
+    }
+    setStatus('获取到 ' + ids.length + ' 个模型，可从输入框下拉选择');
+  } catch (e) {
+    setStatus('获取模型失败：' + e.message, true);
+  } finally {
+    fetchModelsBtn.textContent = original;
+    fetchModelsBtn.disabled = false;
+  }
+}
+
 async function run() {
   const cfg = {
     baseUrl: baseUrlEl.value.trim().replace(/\/+$/, ''),
@@ -997,6 +1053,7 @@ function loadConfig() {
 }
 
 generateBtn.addEventListener('click', run);
+fetchModelsBtn.addEventListener('click', loadModels);
 
 copyAllBtn.addEventListener('click', async () => {
   if (!lastItems.length) return;
